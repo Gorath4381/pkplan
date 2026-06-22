@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="My Plan">
+<meta name="theme-color" content="#003DA5">
+<title>My Weight Loss Plan</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --blue:#003DA5;--blue-lt:#D6E4F7;--blue-dk:#002a73;
+  --teal:#0F6E56;--teal-lt:#E1F5EE;
+  --gold:#C8972A;--gold-lt:#FFF3CD;
+  --green:#217346;--green-lt:#E8F5E9;
+  --amber:#C55A11;--amber-lt:#FFF0DC;
+  --red:#C00000;--red-lt:#FCEBEB;
+  --purple:#534AB7;--purple-lt:#EEEDFE;
+  --bg:#F4F6FB;--card:#fff;--text:#1A1A2E;--muted:#666;
+  --border:#E0E6F0;--radius:14px;--safe-bottom:env(safe-area-inset-bottom,0px)
+}
+html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text)}
+#app{display:flex;flex-direction:column;height:100vh;height:100dvh}
+
+/* ── top header ── */
+#header{background:var(--blue);color:#fff;padding:16px 16px 12px;padding-top:calc(16px + env(safe-area-inset-top,0px));flex-shrink:0}
+#header h1{font-size:17px;font-weight:600;letter-spacing:-.2px}
+#header p{font-size:12px;opacity:.75;margin-top:2px}
+
+/* ── scrollable content ── */
+#content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px;padding-bottom:calc(80px + var(--safe-bottom))}
+
+/* ── bottom nav ── */
+#nav{position:absolute;bottom:0;left:0;right:0;background:#fff;border-top:0.5px solid var(--border);display:flex;padding-bottom:var(--safe-bottom);flex-shrink:0;z-index:100}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px;border:none;background:none;cursor:pointer;font-size:10px;color:var(--muted);font-family:inherit;transition:color .15s}
+.nav-btn.active{color:var(--blue)}
+.nav-btn svg{width:22px;height:22px;stroke-width:1.8;fill:none;stroke:currentColor}
+
+/* ── screens ── */
+.screen{display:none}.screen.active{display:block}
+
+/* ── cards ── */
+.card{background:var(--card);border-radius:var(--radius);border:0.5px solid var(--border);padding:14px 16px;margin-bottom:12px}
+.card-title{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+
+/* ── stat grid ── */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.stat{background:var(--card);border-radius:var(--radius);border:0.5px solid var(--border);padding:12px 14px}
+.stat-label{font-size:11px;color:var(--muted);margin-bottom:4px}
+.stat-val{font-size:22px;font-weight:600}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* ── progress bar ── */
+.prog-wrap{margin-bottom:14px}
+.prog-label{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
+.prog-track{height:10px;background:var(--border);border-radius:5px;overflow:hidden}
+.prog-fill{height:100%;border-radius:5px;transition:width .4s ease}
+
+/* ── weekly check ── */
+.week-row{display:flex;align-items:center;padding:12px 0;border-bottom:0.5px solid var(--border)}
+.week-row:last-child{border-bottom:none}
+.week-info{flex:1}
+.week-info strong{font-size:14px;display:block}
+.week-info span{font-size:12px;color:var(--muted)}
+.week-input{width:80px;padding:6px 10px;border:0.5px solid var(--border);border-radius:8px;font-size:14px;text-align:center;font-family:inherit;background:var(--bg)}
+.week-diff{font-size:13px;font-weight:600;min-width:52px;text-align:right}
+
+/* ── training ── */
+.day-block{margin-bottom:8px}
+.day-hdr{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:10px 0 6px}
+.session{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:10px;margin-bottom:6px}
+.session-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.session-body strong{font-size:13px;font-weight:600;display:block}
+.session-body p{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.4}
+.session-badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;display:inline-block;margin-top:4px}
+.s-gym{background:var(--blue-lt)}
+.s-gym .session-dot{background:var(--blue)}
+.s-gym .session-badge{background:var(--blue-lt);color:#0C447C}
+.s-bike{background:var(--teal-lt)}
+.s-bike .session-dot{background:var(--teal)}
+.s-bike .session-badge{background:var(--teal-lt);color:#085041}
+.s-walk{background:var(--gold-lt)}
+.s-walk .session-dot{background:var(--gold)}
+.s-walk .session-badge{background:var(--gold-lt);color:#633806}
+.s-rest{background:#F4F6FB}
+.s-rest .session-dot{background:#aaa}
+.s-rest .session-badge{background:#F4F6FB;color:#666}
+
+/* ── diet ── */
+.meal{display:flex;gap:12px;padding:12px 0;border-bottom:0.5px solid var(--border);align-items:flex-start}
+.meal:last-child{border-bottom:none}
+.meal-time{font-size:11px;color:var(--muted);min-width:46px;padding-top:2px}
+.meal-body strong{font-size:14px;font-weight:600}
+.meal-body p{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.5}
+.macro-row{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.macro{font-size:11px;padding:2px 7px;border-radius:10px;background:var(--bg);color:var(--muted);border:0.5px solid var(--border)}
+
+/* ── checklist ── */
+.check-item{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:0.5px solid var(--border);cursor:pointer}
+.check-item:last-child{border-bottom:none}
+.check-box{width:22px;height:22px;border-radius:6px;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.check-box.done{background:var(--green);border-color:var(--green)}
+.check-box.done svg{display:block}
+.check-box svg{display:none;width:13px;height:13px;stroke:#fff;stroke-width:2.5;fill:none}
+.check-text{font-size:14px;flex:1;line-height:1.4}
+.check-text.done{text-decoration:line-through;color:var(--muted)}
+.check-section{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:14px 0 6px}
+
+/* ── badge pills ── */
+.pill{display:inline-block;font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px}
+.pill-blue{background:var(--blue-lt);color:#0C447C}
+.pill-green{background:var(--green-lt);color:#27500A}
+.pill-amber{background:var(--amber-lt);color:#633806}
+.pill-red{background:var(--red-lt);color:#791F1F}
+
+/* ── notice box ── */
+.notice{background:var(--gold-lt);border:0.5px solid var(--gold);border-radius:10px;padding:12px 14px;font-size:12px;color:#633806;line-height:1.6;margin-bottom:12px}
+.notice strong{font-weight:600}
+
+/* ── supplements ── */
+.supp{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:0.5px solid var(--border)}
+.supp:last-child{border-bottom:none}
+.supp-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
+.supp-body strong{font-size:14px;font-weight:600;display:block}
+.supp-body p{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.5}
+.supp-timing{font-size:11px;font-weight:600;margin-top:5px;padding:2px 8px;border-radius:10px;display:inline-block}
+</style>
+</head>
+<body>
+<div id="app">
+
+<div id="header">
+  <h1>My Weight Loss Plan</h1>
+  <p id="header-sub">23 Jun – 2 Aug 2026 · 120kg → 107kg</p>
+</div>
+
+<div id="content">
+
+  <!-- ══ HOME ══ -->
+  <div class="screen active" id="s-home">
+
+    <div class="stat-grid">
+      <div class="stat">
+        <div class="stat-label">Start weight</div>
+        <div class="stat-val" style="color:var(--blue)">120<span style="font-size:14px">kg</span></div>
+        <div class="stat-sub">23 Jun 2026</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Target</div>
+        <div class="stat-val" style="color:var(--teal)">107<span style="font-size:14px">kg</span></div>
+        <div class="stat-sub">2 Aug 2026</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Today's calories</div>
+        <div class="stat-val" style="color:var(--amber)">1,800<span style="font-size:14px">kcal</span></div>
+        <div class="stat-sub">daily target</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Current week</div>
+        <div class="stat-val" style="color:var(--purple)" id="current-week-num">—</div>
+        <div class="stat-sub" id="current-week-label">of 6</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Overall progress</div>
+      <div class="prog-wrap">
+        <div class="prog-label"><span>Weight lost</span><span id="lost-label">0 kg of 13 kg</span></div>
+        <div class="prog-track"><div class="prog-fill" id="weight-prog" style="width:0%;background:var(--teal)"></div></div>
+      </div>
+      <div class="prog-wrap">
+        <div class="prog-label"><span>Time elapsed</span><span id="time-label">0 of 41 days</span></div>
+        <div class="prog-track"><div class="prog-fill" id="time-prog" style="width:0%;background:var(--blue)"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Today's sessions</div>
+      <div id="today-sessions"></div>
+    </div>
+
+    <div class="notice">
+      <strong>Realistic target:</strong> Full adherence should deliver 7–10kg in 6 weeks. Early weeks may show more (water weight). Creatine adds 1–2kg of muscle water — don't let the scale discourage you.
+    </div>
+
+    <div class="card">
+      <div class="card-title">Macro targets</div>
+      <div class="prog-wrap">
+        <div class="prog-label"><span style="color:var(--blue);font-weight:600">Protein</span><span>160g · 35%</span></div>
+        <div class="prog-track"><div class="prog-fill" style="width:35%;background:var(--blue)"></div></div>
+      </div>
+      <div class="prog-wrap">
+        <div class="prog-label"><span style="color:var(--teal);font-weight:600">Carbs</span><span>180g · 40%</span></div>
+        <div class="prog-track"><div class="prog-fill" style="width:40%;background:var(--teal)"></div></div>
+      </div>
+      <div class="prog-wrap" style="margin-bottom:0">
+        <div class="prog-label"><span style="color:var(--amber);font-weight:600">Fat</span><span>50g · 25%</span></div>
+        <div class="prog-track"><div class="prog-fill" style="width:25%;background:var(--amber)"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TRAINING ══ -->
+  <div class="screen" id="s-training">
+
+    <div class="notice">Gym: Mon / Wed / Fri / Sat at 6am (trainer-led). Double sessions 6 days a week.</div>
+
+    <div id="training-list"></div>
+
+    <div class="card" style="margin-top:4px">
+      <div class="card-title">Phase progression</div>
+      <div style="padding:8px 0;border-bottom:0.5px solid var(--border)">
+        <span class="pill pill-blue">Phase 1 · Wks 1–2</span>
+        <p style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5">Build habit. HR zone 2 on bike. Walk-run 3 min/1 min. No missed sessions.</p>
+      </div>
+      <div style="padding:8px 0;border-bottom:0.5px solid var(--border)">
+        <span class="pill pill-green">Phase 2 · Wks 3–4</span>
+        <p style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5">HIIT bike extended to 12 rounds. Walk-run 50/50. Evening walk daily.</p>
+      </div>
+      <div style="padding:8px 0">
+        <span class="pill pill-amber">Phase 3 · Wks 5–6</span>
+        <p style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5">Running dominant. Bike +10 min. Double sessions max effort. Final push.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ DIET ══ -->
+  <div class="screen" id="s-diet">
+
+    <div class="card">
+      <div class="card-title">Sample training day</div>
+      <div class="meal">
+        <div class="meal-time">5:30am</div>
+        <div class="meal-body">
+          <strong>Overnight oats & Greek yogurt</strong>
+          <p>60g oats, 150g 0% Greek yogurt, chia seeds, 80g berries, cinnamon. Prep night before.</p>
+          <div class="macro-row"><span class="macro">~420 kcal</span><span class="macro">24g protein</span><span class="macro">55g carbs</span></div>
+        </div>
+      </div>
+      <div class="meal">
+        <div class="meal-time">9:30am</div>
+        <div class="meal-body">
+          <strong>Plenny Shake Pro</strong>
+          <p>Mix with water. Take Floradix separately — not alongside tea/coffee.</p>
+          <div class="macro-row"><span class="macro">~400 kcal</span><span class="macro">40g protein</span><span class="macro">45g carbs</span></div>
+        </div>
+      </div>
+      <div class="meal">
+        <div class="meal-time">12:30pm</div>
+        <div class="meal-body">
+          <strong>Lentil & veg soup + rye bread</strong>
+          <p>250ml lentil soup, 1 slice rye, cucumber & cherry tomatoes.</p>
+          <div class="macro-row"><span class="macro">~380 kcal</span><span class="macro">20g protein</span><span class="macro">50g carbs</span></div>
+        </div>
+      </div>
+      <div class="meal">
+        <div class="meal-time">4:00pm</div>
+        <div class="meal-body">
+          <strong>Cottage cheese & rice cakes</strong>
+          <p>150g low-fat cottage cheese, 2 rice cakes, 1 banana. Pre PM session fuel.</p>
+          <div class="macro-row"><span class="macro">~280 kcal</span><span class="macro">22g protein</span><span class="macro">35g carbs</span></div>
+        </div>
+      </div>
+      <div class="meal">
+        <div class="meal-time">7:00pm</div>
+        <div class="meal-body">
+          <strong>Tofu stir-fry + soba noodles</strong>
+          <p>200g firm tofu, broccoli/pepper/pak choi, 80g soba noodles, soy-ginger sauce.</p>
+          <div class="macro-row"><span class="macro">~450 kcal</span><span class="macro">30g protein</span><span class="macro">45g carbs</span></div>
+        </div>
+      </div>
+      <div class="meal">
+        <div class="meal-time">9:00pm</div>
+        <div class="meal-body">
+          <strong>Skyr / Greek yogurt (if hungry)</strong>
+          <p>200g 0% fat skyr, pumpkin seeds. Only if genuinely hungry.</p>
+          <div class="macro-row"><span class="macro">~150 kcal</span><span class="macro">18g protein</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Meal rotation options</div>
+      <div style="padding:8px 0;border-bottom:0.5px solid var(--border)">
+        <div style="font-size:12px;font-weight:600;color:var(--blue);margin-bottom:4px">Breakfast</div>
+        <div style="font-size:13px;line-height:1.6">Overnight oats · Eggs & spinach on rye · Protein smoothie · Avocado & poached eggs</div>
+      </div>
+      <div style="padding:8px 0;border-bottom:0.5px solid var(--border)">
+        <div style="font-size:12px;font-weight:600;color:var(--teal);margin-bottom:4px">Lunch</div>
+        <div style="font-size:13px;line-height:1.6">Lentil soup · Chickpea wrap · Black bean bowl · Halloumi & roast veg</div>
+      </div>
+      <div style="padding:8px 0;border-bottom:0.5px solid var(--border)">
+        <div style="font-size:12px;font-weight:600;color:var(--green);margin-bottom:4px">Dinner</div>
+        <div style="font-size:13px;line-height:1.6">Tofu stir-fry · Lentil dhal · Chickpea curry · Veggie chilli · Pasta e fagioli</div>
+      </div>
+      <div style="padding:8px 0">
+        <div style="font-size:12px;font-weight:600;color:var(--amber);margin-bottom:4px">Snacks</div>
+        <div style="font-size:13px;line-height:1.6">Cottage cheese & rice cakes · Apple & PB · Edamame · Hummus & veg</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Key rules</div>
+      <div style="font-size:13px;line-height:1.9;color:var(--text)">
+        ✔ No alcohol for 6 weeks<br>
+        ✔ No ultra-processed snacks<br>
+        ✔ Cook with spray oil — not poured<br>
+        ✔ 3.0–3.5 litres of water daily<br>
+        ✔ Starchy carbs mainly pre-workout<br>
+        ✔ Sunday meal prep — non-negotiable<br>
+        ✔ Track food from week 2 (MyFitnessPal)
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TRACKER ══ -->
+  <div class="screen" id="s-tracker">
+
+    <div class="card">
+      <div class="card-title">Weekly weight tracker</div>
+      <div id="weight-tracker"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Daily checklist</div>
+      <div id="daily-checklist"></div>
+      <button onclick="resetChecklist()" style="margin-top:12px;width:100%;padding:10px;border-radius:8px;border:0.5px solid var(--border);background:var(--bg);font-size:13px;color:var(--muted);cursor:pointer;font-family:inherit">Reset for new day</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Supplements</div>
+      <div class="supp">
+        <div class="supp-icon" style="background:var(--blue-lt)">💊</div>
+        <div class="supp-body">
+          <strong>Plenny Shake Pro</strong>
+          <p>Mix with water as directed. Full meal — ~400 kcal, 40g protein.</p>
+          <span class="supp-timing" style="background:var(--blue-lt);color:#0C447C">Mid-morning · daily</span>
+        </div>
+      </div>
+      <div class="supp">
+        <div class="supp-icon" style="background:var(--green-lt)">🩸</div>
+        <div class="supp-body">
+          <strong>Floradix Iron</strong>
+          <p>30 min before food. Avoid tea/coffee. Take with orange juice for best absorption.</p>
+          <span class="supp-timing" style="background:var(--green-lt);color:#27500A">Between meals · away from caffeine</span>
+        </div>
+      </div>
+      <div class="supp">
+        <div class="supp-icon" style="background:var(--purple-lt)">🍬</div>
+        <div class="supp-body">
+          <strong>Creatine gummies</strong>
+          <p>3–5g daily. Post-workout on gym days. Consistent daily use is key. Expect 1–2kg initial water weight.</p>
+          <span class="supp-timing" style="background:var(--purple-lt);color:#3C3489">Post-workout · daily</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /content -->
+
+<!-- ── bottom nav ── -->
+<div id="nav">
+  <button class="nav-btn active" onclick="goto('home',this)" aria-label="Home">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Home
+  </button>
+  <button class="nav-btn" onclick="goto('training',this)" aria-label="Training">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    Training
+  </button>
+  <button class="nav-btn" onclick="goto('diet',this)" aria-label="Diet">
+    <svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+    Diet
+  </button>
+  <button class="nav-btn" onclick="goto('tracker',this)" aria-label="Tracker">
+    <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    Tracker
+  </button>
+</div>
+
+</div><!-- /app -->
+
+<script>
+const START = new Date('2026-06-23');
+const END   = new Date('2026-08-02');
+const START_KG = 120;
+const TARGET_KG = 107;
+
+const WEEKS = [
+  {label:'Week 1', dates:'23–29 Jun', target:118.5, loss:'~1.5 kg'},
+  {label:'Week 2', dates:'30 Jun–6 Jul', target:117, loss:'~1.5 kg'},
+  {label:'Week 3', dates:'7–13 Jul', target:115.5, loss:'~1.5 kg'},
+  {label:'Week 4', dates:'14–20 Jul', target:114, loss:'~1.5 kg'},
+  {label:'Week 5', dates:'21–27 Jul', target:112.5, loss:'~1.5 kg'},
+  {label:'Week 6', dates:'28 Jul–2 Aug', target:110, loss:'2–5.5 kg'},
+];
+
+const SESSIONS = {
+  Monday:[
+    {type:'gym', title:'Gym 6am — trainer-led', detail:'Compound lifts: squats, deadlifts, rows, press. Take creatine post-session.', dur:'45–60 min', burn:'~350 kcal'},
+    {type:'bike', title:'PM — Endurance bike', detail:'NordicTrack HR 60–70% max (118–135bpm). Steady pace, incline 2–4%, resistance 6–8.', dur:'45 min', burn:'~420 kcal'},
+  ],
+  Tuesday:[
+    {type:'walk', title:'AM — Walk/run intervals', detail:'Walk 3 min / jog 1 min (wks 1–2). Build to 2/2 by wk 4. Aim 7–8k steps.', dur:'50 min', burn:'~380 kcal'},
+    {type:'bike', title:'PM — HIIT bike', detail:'30 sec hard (resistance 14–18) / 90 sec easy. 8–10 rounds. Excellent EPOC burn.', dur:'30 min', burn:'~320 kcal'},
+  ],
+  Wednesday:[
+    {type:'gym', title:'Gym 6am — trainer-led', detail:'Between sets add 2 min treadmill walk. Ask trainer for circuit/AMRAP format.', dur:'45–60 min', burn:'~350 kcal'},
+    {type:'walk', title:'PM — Active recovery walk', detail:'Gentle pace, 6–8k steps. No intensity. Critical for muscle recovery.', dur:'40 min', burn:'~200 kcal'},
+  ],
+  Thursday:[
+    {type:'walk', title:'AM — Longer walk/run', detail:'8–10k steps. Wk 1: mostly walking → wk 6: 70% jogging. Use gentle hills.', dur:'60 min', burn:'~450 kcal'},
+    {type:'bike', title:'PM — Steady endurance bike', detail:'HR zone 2 fat-burning. Resistance 6–8, cadence 80–90rpm.', dur:'40 min', burn:'~360 kcal'},
+  ],
+  Friday:[
+    {type:'gym', title:'Gym 6am — trainer-led', detail:'If energy is low tell the trainer. Still attend — reduce intensity if needed.', dur:'45–60 min', burn:'~350 kcal'},
+    {type:'bike', title:'PM — Optional HIIT or easy spin', detail:'HIIT sprints OR easy 20 min spin. Listen to your body. Skip only if fatigued.', dur:'20–30 min', burn:'~250 kcal'},
+  ],
+  Saturday:[
+    {type:'gym', title:'Gym AM — trainer-led', detail:'Primary benchmark session — note energy & strength week to week. Push hard.', dur:'45–60 min', burn:'~350 kcal'},
+    {type:'walk', title:'PM — Leisure walk', detail:'Family/solo walk, 8–10k steps. No pressure. Adds to weekly deficit.', dur:'60 min', burn:'~300 kcal'},
+  ],
+  Sunday:[
+    {type:'rest', title:'Rest / light activity only', detail:'Full rest or gentle 30 min walk. Foam roll 15 min. MEAL PREP for the week.', dur:'0–30 min', burn:'~100 kcal'},
+  ],
+};
+
+const CHECKLIST_ITEMS = [
+  {id:'gym', label:'Gym session attended', section:'Training'},
+  {id:'bike', label:'Bike session done', section:'Training'},
+  {id:'walk', label:'Walk/run completed', section:'Training'},
+  {id:'steps', label:'8,000+ steps reached', section:'Training'},
+  {id:'plenny', label:'Plenny Shake taken', section:'Nutrition'},
+  {id:'floradix', label:'Floradix taken (away from caffeine)', section:'Nutrition'},
+  {id:'creatine', label:'Creatine taken post-workout', section:'Nutrition'},
+  {id:'water', label:'3+ litres of water', section:'Nutrition'},
+  {id:'cals', label:'Under 1,800 kcal today', section:'Nutrition'},
+  {id:'protein', label:'160g+ protein today', section:'Nutrition'},
+  {id:'noalc', label:'No alcohol', section:'Nutrition'},
+  {id:'sleep', label:'7+ hours sleep last night', section:'Recovery'},
+  {id:'foam', label:'Foam roll / stretch done', section:'Recovery'},
+];
+
+function goto(screen, btn) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('s-'+screen).classList.add('active');
+  btn.classList.add('active');
+  document.getElementById('content').scrollTop = 0;
+}
+
+function getDayName() {
+  return ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][new Date().getDay()];
+}
+
+function getCurrentWeek() {
+  const now = new Date();
+  const diff = Math.floor((now - START) / (1000*60*60*24));
+  return Math.min(6, Math.max(1, Math.floor(diff/7)+1));
+}
+
+function updateHome() {
+  const now = new Date();
+  const totalDays = Math.round((END - START)/(1000*60*60*24));
+  const elapsed = Math.max(0, Math.min(totalDays, Math.round((now - START)/(1000*60*60*24))));
+  const timePct = Math.round((elapsed/totalDays)*100);
+
+  const saved = localStorage.getItem('weekly_weights');
+  const weights = saved ? JSON.parse(saved) : {};
+  const latestWk = Object.keys(weights).sort().pop();
+  const currentKg = latestWk ? parseFloat(weights[latestWk]) : START_KG;
+  const lost = Math.max(0, START_KG - currentKg);
+  const totalTarget = START_KG - TARGET_KG;
+  const lostPct = Math.min(100, Math.round((lost/totalTarget)*100));
+
+  document.getElementById('lost-label').textContent = lost.toFixed(1)+' kg of '+totalTarget+' kg';
+  document.getElementById('weight-prog').style.width = lostPct+'%';
+  document.getElementById('time-label').textContent = elapsed+' of '+totalDays+' days';
+  document.getElementById('time-prog').style.width = timePct+'%';
+
+  const wk = getCurrentWeek();
+  document.getElementById('current-week-num').textContent = 'Wk '+wk;
+  document.getElementById('current-week-label').textContent = 'of 6 weeks';
+
+  const day = getDayName();
+  const todaySessions = SESSIONS[day] || [];
+  const todayEl = document.getElementById('today-sessions');
+  if(todaySessions.length===0){
+    todayEl.innerHTML='<p style="font-size:13px;color:var(--muted);padding:4px 0">No sessions scheduled today.</p>';
+  } else {
+    todayEl.innerHTML = todaySessions.map(s=>`
+      <div class="session s-${s.type}" style="margin-bottom:8px">
+        <div class="session-dot"></div>
+        <div class="session-body">
+          <strong>${s.title}</strong>
+          <p>${s.detail}</p>
+          <span class="session-badge">${s.dur} · ${s.burn}</span>
+        </div>
+      </div>`).join('');
+  }
+}
+
+function buildTraining() {
+  const el = document.getElementById('training-list');
+  el.innerHTML = Object.entries(SESSIONS).map(([day, sessions])=>`
+    <div class="day-block">
+      <div class="day-hdr">${day}</div>
+      ${sessions.map(s=>`
+        <div class="session s-${s.type}">
+          <div class="session-dot"></div>
+          <div class="session-body">
+            <strong>${s.title}</strong>
+            <p>${s.detail}</p>
+            <span class="session-badge">${s.dur} · ${s.burn}</span>
+          </div>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+function buildTracker() {
+  const saved = localStorage.getItem('weekly_weights');
+  const weights = saved ? JSON.parse(saved) : {};
+
+  const el = document.getElementById('weight-tracker');
+  el.innerHTML = WEEKS.map((wk,i)=>{
+    const key = 'wk'+(i+1);
+    const val = weights[key]||'';
+    const diff = val ? (parseFloat(val)-START_KG).toFixed(1) : null;
+    const diffColor = diff===null ? 'var(--muted)' : diff<0 ? 'var(--green)' : 'var(--red)';
+    const diffText = diff===null ? '—' : (diff<0?'':'+')+diff+' kg';
+    return `<div class="week-row">
+      <div class="week-info">
+        <strong>${wk.label}</strong>
+        <span>${wk.dates} · target: ${wk.target} kg</span>
+      </div>
+      <input type="number" step="0.1" min="80" max="130" placeholder="kg"
+        value="${val}" inputmode="decimal"
+        onchange="saveWeight('${key}',this.value)"
+        style="width:72px;padding:6px 8px;border:0.5px solid var(--border);border-radius:8px;font-size:14px;text-align:center;font-family:inherit;background:var(--bg)">
+      <div class="week-diff" style="color:${diffColor}">${diffText}</div>
+    </div>`;
+  }).join('');
+}
+
+function saveWeight(key, val) {
+  const saved = localStorage.getItem('weekly_weights');
+  const weights = saved ? JSON.parse(saved) : {};
+  if(val) weights[key]=val; else delete weights[key];
+  localStorage.setItem('weekly_weights', JSON.stringify(weights));
+  updateHome();
+  buildTracker();
+}
+
+function buildChecklist() {
+  const saved = localStorage.getItem('daily_checks_'+todayKey());
+  const done = saved ? JSON.parse(saved) : {};
+
+  let lastSection = '';
+  const el = document.getElementById('daily-checklist');
+  el.innerHTML = CHECKLIST_ITEMS.map(item=>{
+    let sectionHdr = '';
+    if(item.section !== lastSection){
+      lastSection = item.section;
+      sectionHdr = `<div class="check-section">${item.section}</div>`;
+    }
+    const isDone = done[item.id];
+    return `${sectionHdr}
+      <div class="check-item" onclick="toggleCheck('${item.id}')">
+        <div class="check-box ${isDone?'done':''}">
+          <svg viewBox="0 0 12 12"><polyline points="1.5 6 4.5 9 10.5 3"/></svg>
+        </div>
+        <div class="check-text ${isDone?'done':''}">${item.label}</div>
+      </div>`;
+  }).join('');
+}
+
+function todayKey() {
+  const d = new Date();
+  return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+}
+
+function toggleCheck(id) {
+  const key = 'daily_checks_'+todayKey();
+  const saved = localStorage.getItem(key);
+  const done = saved ? JSON.parse(saved) : {};
+  done[id] = !done[id];
+  localStorage.setItem(key, JSON.stringify(done));
+  buildChecklist();
+}
+
+function resetChecklist() {
+  localStorage.removeItem('daily_checks_'+todayKey());
+  buildChecklist();
+}
+
+buildTraining();
+buildTracker();
+buildChecklist();
+updateHome();
+</script>
+</body>
+</html>
